@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model File {
+  id               String       @id
+  name             String
+  uploadStatus     UploadStatus @default(PENDING)
+  url              String
+  key              String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime
+  userId           String?
+  agentDescription String       @default("Agente de atendimento para informações gerais")
+  agentName        String       @default("Agente IA")
+  agentNumber      String?
+  agentTitle       String       @default("Agente IA")
+  agentType        String       @default("Atendente")
+  isAtive          Boolean      @default(false)
+  isConnected      Boolean      @default(false)
+  User             User?        @relation(fields: [userId], references: [id])
+  Message          Message[]
+}
+
+model Message {
+  id            String   @id
+  text          String
+  isUserMessage Boolean
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+  userId        String?
+  fileId        String?
+  File          File?    @relation(fields: [fileId], references: [id])
+  User          User?    @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id    String @id @unique //matches kinde user id
+  email String @unique
+
+  File    File[]
+  Message Message[]
+  Agent   Agent[]
+
+  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
+  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
+  stripePriceId          String?   @map(name: "stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
+}
+
+model Contact {
+  id          String       @id @default(cuid())
+  email       String?
+  name        String?
+  phone       String
+  threadId    String?
+  isSeen      Boolean      @default(false)
+  lastMessage String?
+  timestamp   DateTime     @default(now())
+  agentId     String       @default("1")
+  apiKey      String? // API key del usuario
+  agent       Agent        @relation(fields: [agentId], references: [id])
+  hubMessages HubMessage[]
+
+  @@unique([phone, agentId], name: "phone_agentId_unique")
+}
+
+model Agent {
+  id                String       @id @default(cuid())
+  key               String
+  userId            String       @default("kp_e3a72c3571304d159d6e876b320abddd")
+  agentTitle        String       @default("Agente IA")
+  agentName         String       @default("Agente IA")
+  agentType         String       @default("Atendente")
+  agentDescription  String       @default("Agente de atendimento para informações gerais")
+  notificationGroup String?
+  groupOwner        String?
+  isAtive           Boolean      @default(false)
+  isConnected       Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  User              User?        @relation(fields: [userId], references: [id])
+  contacts          Contact[]
+  events            AgentEvent[]
+}
+
+model HubMessage {
+  id            String      @id @default(cuid())
+  text          String
+  messageType   MessageType
+  isUserMessage Boolean
+  isSeen        Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  contactId     String
+  contact       Contact     @relation(fields: [contactId], references: [id])
+}
+
+model ClientProfile {
+  id                     String  @id @default(cuid())
+  phone                  String  @default("update")
+  name                   String
+  email                  String?
+  numberOfChildrens      String?
+  age                    String
+  profession             String
+  employmentContractType String
+  employmentDuration     String
+  monthlyNetIncome       String
+  currentLoanPayments    String
+  outstandingLoanAmount  String
+  personalSituation      String
+  numberOfHolders        String
+  propertyValue          Float
+  propertyLocation       String
+  downPayment            Float
+  profileType            String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UploadStatus {
+  PENDING
+  PROCESSING
+  FAILED
+  SUCCESS
+}
+
+enum MessageType {
+  DOCUMENT
+  IMAGE
+  TEXT
+  AUDIO
+}
+
+// ============================================================================
+// Agent Events System
+// ============================================================================
+
+enum EventSeverity {
+  ERROR
+  WARNING
+  SUCCESS
+  INFO
+}
+
+enum EventCategory {
+  INTEGRATION
+  TOOL
+  MESSAGING
+  ATTACHMENTS
+  SYSTEM
+}
+
+model AgentEvent {
+  id            String   @id @default(cuid())
+  correlationId String   @default(cuid())
+  timestamp     DateTime @default(now())
+
+  // Severity levels
+  severity EventSeverity
+
+  // Origin information
+  category   EventCategory
+  originName String // e.g., "WhatsApp Integration", "searchProducts"
+  channel    String? // e.g., "WhatsApp", "Email"
+
+  // Event content
+  summary  String
+  details  String @db.Text
+  duration Int? // Execution duration in ms
+  payload  Json? // Additional context
+
+  // Relations
+  agentId String
+  agent   Agent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+  @@index([timestamp])
+  @@index([severity])
+  @@index([category])
+}
