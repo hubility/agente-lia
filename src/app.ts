@@ -25,8 +25,8 @@ const main = async () => {
     tools: createLiaTools(liaApi).map((t) => adaptTool(t, { provider: adapterProvider })),
     provider: adapterProvider,
     instructions: systemPrompt,
-    model: 'gpt-5.1',
-    temperature: 0.1,
+    model: 'gpt-5.4-mini',
+    //temperature: 0.1,
   });
 
   // documentPipe is intentionally omitted: its body is commented out in @hubility/agents-amber.
