@@ -63,11 +63,29 @@ model Contact {
   lastMessage String?
   timestamp   DateTime     @default(now())
   agentId     String       @default("1")
+  isAdmin     Boolean      @default(false)
   apiKey      String? // API key del usuario
   agent       Agent        @relation(fields: [agentId], references: [id])
   hubMessages HubMessage[]
 
   @@unique([phone, agentId], name: "phone_agentId_unique")
+}
+
+// Reglas de administrador por agente (las gestiona el SDK @hubility/agents-amber).
+// La tabla y la columna Contact.isAdmin ya existen en la DB (aplicadas por SQL manual
+// en el SDK). Este modelo solo declara la forma para que el cliente Prisma generado
+// por Lia las conozca; sin relación `agent` a propósito (el escalar agentId basta y
+// evita tocar el modelo Agent). NO usar prisma db push/migrate: la DB ya está al día.
+model AgentRule {
+  id        String   @id @default(cuid())
+  agentId   String
+  content   String
+  isActive  Boolean  @default(true)
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId, isActive])
 }
 
 model Agent {
