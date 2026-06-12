@@ -9,7 +9,7 @@
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "dev": "tsx src/app.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "start": "node dist/app.js"
   },
   "dependencies": {
