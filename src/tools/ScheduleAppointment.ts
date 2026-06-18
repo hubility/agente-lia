@@ -10,16 +10,18 @@ const Schema = z.object({
     .describe('Início da consulta, ISO 8601 com offset de Fortaleza. Ex.: "2026-06-02T11:00:00-03:00".'),
   catalogItemId: z
     .string()
+    .optional()
     .nullable()
     .describe('ID do serviço (list_catalog). Define duração e título. Envie isto OU durationMinutes.'),
   durationMinutes: z
     .number()
     .int()
     .positive()
+    .optional()
     .nullable()
     .describe('Duração em minutos. Obrigatório apenas se não enviar catalogItemId.'),
-  title: z.string().nullable().describe('Título da consulta (opcional; o catálogo define um padrão).'),
-  notes: z.string().nullable().describe('Observações (opcional).'),
+  title: z.string().optional().nullable().describe('Título da consulta (opcional; o catálogo define um padrão).'),
+  notes: z.string().optional().nullable().describe('Observações (opcional).'),
 });
 
 // Agenda uma consulta. O paciente deve existir (use create_patient antes se necessário).
@@ -43,10 +45,10 @@ export function createScheduleAppointmentTool(
         const data = await client.createAppointment({
           phone: context.phoneNumber,
           startsAt: args.startsAt,
-          catalogItemId: args.catalogItemId ?? undefined,
+          catalogItemId: args.catalogItemId || undefined,
           durationMinutes: args.durationMinutes ?? undefined,
-          title: args.title ?? undefined,
-          notes: args.notes ?? undefined,
+          title: args.title || undefined,
+          notes: args.notes || undefined,
         });
         await events.success('tool', 'schedule_appointment', 'Consulta agendada', {
           channel: 'Telegram',
