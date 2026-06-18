@@ -6,13 +6,14 @@ import type { LiaToolContext } from './context.js';
 
 const Schema = z.object({
   name: z.string().describe('Nome completo do paciente.'),
-  email: z.string().nullable().describe('E-mail (opcional).'),
-  cpf: z.string().nullable().describe('CPF (opcional).'),
+  email: z.string().optional().nullable().describe('E-mail (opcional).'),
+  cpf: z.string().optional().nullable().describe('CPF (opcional).'),
   birthDate: z
     .string()
+    .optional()
     .nullable()
     .describe('Data de nascimento, ISO 8601. Ex.: "1990-05-20T00:00:00-03:00" (opcional).'),
-  notes: z.string().nullable().describe('Observações (opcional).'),
+  notes: z.string().optional().nullable().describe('Observações (opcional).'),
 });
 
 // Cadastra um paciente novo. O telefone vem da conversa.
