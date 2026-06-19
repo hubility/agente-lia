@@ -45,6 +45,89 @@ export interface Availability {
   slots: string[];
 }
 
+export interface QuoteLine {
+  id: string;
+  quoteId: string;
+  catalogItemId: string | null;
+  description: string;
+  quantity: number;
+  unitPriceCents: number;
+  totalPriceCents: number;
+}
+
+export interface Quote {
+  id: string;
+  patientId: string;
+  number: string;
+  issueDate: string;
+  paymentMethod: string | null;
+  validityDays: number | null;
+  discountCents: number;
+  notes: string | null;
+  patient?: Patient | null;
+  lines?: QuoteLine[];
+}
+
+export interface Prescription {
+  id: string;
+  patientId: string;
+  issueDate: string;
+  notes: string | null;
+  patient?: Patient | null;
+}
+
+export interface MedicalCertificate {
+  id: string;
+  patientId: string;
+  issueDate: string;
+  absenceStartDate: string;
+  absenceEndDate: string;
+  cid: string;
+  city: string;
+  notes: string | null;
+  patient?: Patient | null;
+}
+
+export interface QuoteLineInput {
+  catalogItemId?: string | null;
+  description: string;
+  quantity: number;
+  unitPriceCents: number;
+}
+
+export interface CreateQuoteInput {
+  patientId: string;
+  issueDate: string;
+  paymentMethod?: string | null;
+  validityDays?: number | null;
+  discountCents: number;
+  notes?: string | null;
+  lines: QuoteLineInput[];
+}
+
+export interface PrescriptionItemInput {
+  medicine: string;
+  instructions: string;
+  position: number;
+}
+
+export interface CreatePrescriptionInput {
+  patientId: string;
+  issueDate: string;
+  notes?: string | null;
+  items: PrescriptionItemInput[];
+}
+
+export interface CreateCertificateInput {
+  patientId: string;
+  issueDate: string;
+  absenceStartDate: string;
+  absenceEndDate: string;
+  cid: string;
+  city: string;
+  notes?: string | null;
+}
+
 export type PatientContext =
   | { isPatient: false }
   | {
@@ -136,5 +219,34 @@ export class LiaApiClient {
 
   cancelAppointment(id: string) {
     return this.request<Appointment>('DELETE', `/api/agent/v1/appointments/${encodeURIComponent(id)}`);
+  }
+
+  searchPatients(q: string) {
+    const qs = new URLSearchParams({ q });
+    return this.request<Patient[]>('GET', `/api/agent/v1/patients?${qs.toString()}`);
+  }
+
+  createQuote(input: CreateQuoteInput) {
+    return this.request<Quote>('POST', '/api/agent/v1/quotes', input);
+  }
+
+  listQuotes() {
+    return this.request<Quote[]>('GET', '/api/agent/v1/quotes');
+  }
+
+  createPrescription(input: CreatePrescriptionInput) {
+    return this.request<Prescription>('POST', '/api/agent/v1/prescriptions', input);
+  }
+
+  listPrescriptions() {
+    return this.request<Prescription[]>('GET', '/api/agent/v1/prescriptions');
+  }
+
+  createCertificate(input: CreateCertificateInput) {
+    return this.request<MedicalCertificate>('POST', '/api/agent/v1/certificates', input);
+  }
+
+  listCertificates() {
+    return this.request<MedicalCertificate[]>('GET', '/api/agent/v1/certificates');
   }
 }
