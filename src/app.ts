@@ -7,7 +7,7 @@ import { systemPrompt } from './prompts/system-prompt-lia.js';
 import { adminSystemPrompt } from './prompts/system-prompt-lia-admin.js';
 import { LiaApiClient } from './services/LiaApiClient.js';
 import { createLiaTools } from './tools/index.js';
-import { createListCatalogTool } from './tools/ListCatalog.js';
+import { createAdminTools } from './tools/admin/index.js';
 
 const adapterProvider = createProvider(TelegramProvider, {
   botToken: process.env.TELEGRAM_BOT_TOKEN,
@@ -29,13 +29,13 @@ const main = async () => {
     instructions: systemPrompt,
     model: 'gpt-5.4-mini',
     //temperature: 0.1,
-    // Modo admin: gestores de la clínica (Contact.isAdmin) hablan con un agente
-    // de gestión propio para configurar reglas de negocio + consultar el catálogo.
-    // Las tools de reglas (save/list/delete) las añade el SDK automáticamente.
+    // Modo admin: el doctor / gestores de la clínica (Contact.isAdmin) hablan con la
+    // misma Lia en modo gestión: localizar pacientes, ver fichas, agenda y emitir
+    // documentos, además de las reglas de negocio (save/list/delete las añade el SDK).
     admin: {
       enabled: true,
       instructions: adminSystemPrompt,
-      tools: [adaptTool(createListCatalogTool(liaApi), { provider: adapterProvider })],
+      tools: createAdminTools(liaApi).map((t) => adaptTool(t, { provider: adapterProvider })),
     },
   });
 
