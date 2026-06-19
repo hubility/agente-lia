@@ -2,6 +2,7 @@
 // El prompt admin (que consume liaCore) se comprueba en la Task 7.
 // Ejecutar: npx tsx tests/prompts-smoke.ts
 import { systemPrompt } from '../src/prompts/system-prompt-lia.js';
+import { adminSystemPrompt } from '../src/prompts/system-prompt-lia-admin.js';
 import { liaCore } from '../src/prompts/lia-core.js';
 
 const checks: Array<[string, boolean]> = [
@@ -11,6 +12,11 @@ const checks: Array<[string, boolean]> = [
   ['paciente intacto: get_patient_context', systemPrompt.includes('get_patient_context')],
   ['paciente intacto: create_patient', systemPrompt.includes('create_patient')],
   ['paciente intacto: frases proibidas', systemPrompt.includes('Frases PROIBIDAS')],
+  ['admin comparte el núcleo', adminSystemPrompt.includes('Dr. Darcy Mavignier Odontologia')],
+  ['admin conserva regla de texto puro', adminSystemPrompt.includes('NÃO use Markdown')],
+  ['admin expone search_patient', adminSystemPrompt.includes('search_patient')],
+  ['admin expone create_quote', adminSystemPrompt.includes('create_quote')],
+  ['admin exige confirmación', adminSystemPrompt.includes('confirme explicitamente')],
 ];
 
 let ok = true;
