@@ -71,11 +71,41 @@ model Contact {
   @@unique([phone, agentId], name: "phone_agentId_unique")
 }
 
-// Reglas de administrador por agente (las gestiona el SDK @hubility/agents-amber).
-// La tabla y la columna Contact.isAdmin ya existen en la DB (aplicadas por SQL manual
-// en el SDK). Este modelo solo declara la forma para que el cliente Prisma generado
-// por Lia las conozca; sin relación `agent` a propósito (el escalar agentId basta y
-// evita tocar el modelo Agent). NO usar prisma db push/migrate: la DB ya está al día.
+// Alineado con el schema de la plataforma (hubility-agents-sdk/prisma/schema.prisma).
+// loadAgentConfig() del SDK selecciona name/model/temperature/verbosity/systemPrompt/
+// adminSystemPrompt/isActive/envVariables con el cliente generado por ESTE schema.
+// NO usar prisma db push/migrate: la DB ya está al día.
+model Agent {
+  id                String             @id @default(cuid())
+  key               String             @unique @default(cuid())
+  isActive          Boolean            @default(false)
+  isConnected       Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  apiKey            String?
+  description       String?
+  groupName         String?
+  model             String             @default("gpt-4o")
+  name              String
+  ownerId           String
+  systemPrompt      String
+  temperature       Float              @default(0.7)
+  type              String             @default("General")
+  phoneNumberId     String?            @unique
+  agentEndpoint     String?
+  tone              String             @default("formal")
+  verbosity         Int                @default(2)
+  railwayProjectId  String?            @unique
+  welcomeMessage    String?
+  welcomeButton     String?
+  adminSystemPrompt String?
+  owner             User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  envVariables      AgentEnvVariable[]
+  contacts          Contact[]
+  events            AgentEvent[]
+  AgentRule         AgentRule[]
+}
+
 model AgentRule {
   id        String   @id @default(cuid())
   agentId   String
@@ -83,28 +113,21 @@ model AgentRule {
   isActive  Boolean  @default(true)
   createdBy String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
+  Agent     Agent    @relation(fields: [agentId], references: [id])
 
   @@index([agentId, isActive])
 }
 
-model Agent {
-  id                String       @id @default(cuid())
-  key               String
-  userId            String       @default("kp_e3a72c3571304d159d6e876b320abddd")
-  agentTitle        String       @default("Agente IA")
-  agentName         String       @default("Agente IA")
-  agentType         String       @default("Atendente")
-  agentDescription  String       @default("Agente de atendimento para informações gerais")
-  notificationGroup String?
-  groupOwner        String?
-  isAtive           Boolean      @default(false)
-  isConnected       Boolean      @default(false)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  User              User?        @relation(fields: [userId], references: [id])
-  contacts          Contact[]
-  events            AgentEvent[]
+model AgentEnvVariable {
+  id       String  @id @default(cuid())
+  agentId  String
+  key      String
+  value    String
+  isSecret Boolean @default(false)
+  agent    Agent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, key])
 }
 
 model HubMessage {
