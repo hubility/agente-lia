@@ -4,6 +4,36 @@
 > en real. Ver `memory-bank/sessions/2026-08-05_migracion-config-db.md` para decisiones
 > y aprendizajes (Node >=22 obligatorio, cold start de Neon en lia-web).
 
+> **🔴 BUG ABIERTO (2026-08-05, noche) — PARA LA INSTANCIA DEL REPO DEL SDK**
+>
+> LIA en producción devuelve **400 «Unsupported parameter: 'temperature' is not
+> supported with this model»** en cada mensaje (`handleAIResponse` / `textPipe`),
+> aunque `app.ts` NO pasa `temperature` al `AgentService`. Es el escenario que el
+> gotcha nº 5 anticipaba: «si aparece el 400, el fix de fondo es del SDK».
+>
+> **Causa raíz** (verificada en el dist de alpha.23): `buildModelSettings` fuerza
+> el parámetro aunque nadie lo pida —
+> `packages/hubility-agents-amber/src/agents/HubilityAgent.ts:51`
+> ```ts
+> temperature: temperature ?? 0.1,   // se envía SIEMPRE; gpt-5.4-mini lo rechaza
+> ```
+> El mismo patrón existe en `packages/hubility-agents/src/agents/HubilityAgent.ts`
+> líneas 60 y 110.
+>
+> **Fix propuesto**: emitir `temperature` solo si viene definida —
+> ```ts
+> const settings: { temperature?: number; store: boolean; providerData?: any } = {
+>   store: true,
+> };
+> if (temperature !== undefined) settings.temperature = temperature;
+> ```
+> (sin default 0.1: con los GPT-5.x razonadores no hay valor seguro). Publicar
+> `@hubility/agents-amber@0.1.0-alpha.24` y avisar para hacer el bump en LIA.
+> Ojo: `Agent.temperature=0.1` está en la fila de LIA en la DB, pero
+> `loadAgentConfig()` solo la expone — LIA no la pasa al AgentService, así que
+> con el fix el parámetro deja de enviarse. Socorro (gpt-5.1) no explota de
+> milagro: su modelo aún tolera el parámetro.
+
 **Fecha:** 2026-08-05
 **Origen:** sesión en `hubility-agents-sdk` (ver `memory-bank/sessions/2026-08-05_config-desde-db-y-play-pause.md` y el `HANDOFF.md` de ese repo).
 **Estado previo ya completado:** SQL de `Agent.adminSystemPrompt` **aplicado** en la DB compartida; `main`/`dev` del SDK pusheados; publicados `@hubility/agents-amber@0.1.0-alpha.23` (tag latest) y `@hubility/provider-telegram@1.0.3` en GitHub Packages.
