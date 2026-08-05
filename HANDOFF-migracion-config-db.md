@@ -1,5 +1,9 @@
 # HANDOFF — Migrar LIA a config desde la DB + play/pause
 
+> **✅ COMPLETADO el 2026-08-05** — migración ejecutada, desplegada en Railway y probada
+> en real. Ver `memory-bank/sessions/2026-08-05_migracion-config-db.md` para decisiones
+> y aprendizajes (Node >=22 obligatorio, cold start de Neon en lia-web).
+
 **Fecha:** 2026-08-05
 **Origen:** sesión en `hubility-agents-sdk` (ver `memory-bank/sessions/2026-08-05_config-desde-db-y-play-pause.md` y el `HANDOFF.md` de ese repo).
 **Estado previo ya completado:** SQL de `Agent.adminSystemPrompt` **aplicado** en la DB compartida; `main`/`dev` del SDK pusheados; publicados `@hubility/agents-amber@0.1.0-alpha.23` (tag latest) y `@hubility/provider-telegram@1.0.3` en GitHub Packages.
