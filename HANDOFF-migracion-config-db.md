@@ -33,6 +33,21 @@
 > `loadAgentConfig()` solo la expone — LIA no la pasa al AgentService, así que
 > con el fix el parámetro deja de enviarse. Socorro (gpt-5.1) no explota de
 > milagro: su modelo aún tolera el parámetro.
+>
+> **✅ RESUELTO (2026-08-05, noche) por la instancia del SDK:** fix aplicado tal
+> cual en `buildModelSettings` (amber) y en los dos `modelSettings` del paquete
+> legacy `hubility-agents` (este sin publicar, nadie lo consume en prod).
+> **`@hubility/agents-amber@0.1.0-alpha.24` publicada** (tag latest) y repo
+> pusheado (`f64bc43` en main/dev). Acción en LIA: bump a alpha.24,
+> `npm install`, deploy. No hace falta tocar la DB ni app.ts.
+>
+> **✅ CERRADO en LIA (2026-08-06):** bump directo a **alpha.25** (el SDK sacó
+> después `Agent.temperature Float?` sin default; SQL ya aplicado en Supabase).
+> En LIA: `package.json` → alpha.25 y `prisma/schema.prisma` → `temperature Float?`
+> + `prisma generate`. Typecheck y build limpios; verificado en el dist que
+> `buildModelSettings` solo emite `temperature` si no es undefined/null.
+> Nota: la fila `Agent` de LIA sigue con `temperature=0.1` (el SQL solo puso a
+> NULL las que estaban en el 0.7 de fábrica) — inocuo, `app.ts` no la pasa.
 
 **Fecha:** 2026-08-05
 **Origen:** sesión en `hubility-agents-sdk` (ver `memory-bank/sessions/2026-08-05_config-desde-db-y-play-pause.md` y el `HANDOFF.md` de ese repo).

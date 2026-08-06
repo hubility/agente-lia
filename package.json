@@ -18,7 +18,7 @@
   "dependencies": {
     "@hubility/router": "1.1.0",
     "@hubility/provider-telegram": "1.0.3",
-    "@hubility/agents-amber": "0.1.0-alpha.23",
+    "@hubility/agents-amber": "0.1.0-alpha.25",
     "@modelcontextprotocol/sdk": "^1.25.2",
     "@prisma/client": "5.22.0",
     "dotenv": "^16.4.5",

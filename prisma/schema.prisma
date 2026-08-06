@@ -89,7 +89,7 @@ model Agent {
   name              String
   ownerId           String
   systemPrompt      String
-  temperature       Float              @default(0.7)
+  temperature       Float?
   type              String             @default("General")
   phoneNumberId     String?            @unique
   agentEndpoint     String?
